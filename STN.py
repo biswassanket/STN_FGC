@@ -1,6 +1,6 @@
 # import pytorch_lightning as pl
 import torch
-import torchmetrics
+# import torchmetrics
 import torch.nn as nn
 import torch.nn.functional as F
 
@@ -8,7 +8,7 @@ from modules import CoordConv
 
 class SimpleSTN(nn.Module):
     """
-    Pytorch-lightning implementation of a simple spatial
+    Pytorch implementation of a simple spatial
     transformer network, based on the official pytorch tutorial at:
     https://pytorch.org/tutorials/intermediate/spatial_transformer_tutorial.html
     """
@@ -86,39 +86,7 @@ class SimpleSTN(nn.Module):
         return x
 
 
-    # def configure_optimizers(self):
-    #     optimizer = torch.optim.SGD(self.parameters(), lr=self.lr)
-
-    #     return optimizer
-
-
-    # def training_step(self, batch, batch_idx):
-    #     data, target = batch
-    #     logits = self(data)
-    #     loss = F.nll_loss(logits, target)
-    #     self.train_accuracy(logits, target)
-
-    #     self.log('train_loss', loss, on_step=True, on_epoch=True,
-    #              prog_bar=True, logger=True)
-    #     self.log('train_acc', self.train_accuracy, on_step=True,
-    #              on_epoch=False, prog_bar=True, logger=True)
-
-    #     return loss
-
-
-    # def validation_step(self, batch, batch_idx):
-    #     data, target = batch
-
-    #     logits = self(data)
-    #     loss = F.nll_loss(logits, target)
-    #     self.validation_accuracy(logits, target)
-
-    #     self.log('validation_loss', loss, on_step=False, on_epoch=True,
-    #              prog_bar=True, logger=True)
-    #     self.log('validation_acc', self.validation_accuracy, on_step=False,
-    #              on_epoch=True, prog_bar=True, logger=True)
-
-    #     return loss
+ 
 
 
 class CoordSTN(nn.Module):
@@ -208,36 +176,3 @@ class CoordSTN(nn.Module):
         x = self.fc2(x)                            # (bs, 10)
 
         return x
-
-    # def configure_optimizers(self):
-    #     optimizer = torch.optim.SGD(self.parameters(), lr=self.lr)
-
-    #     return optimizer
-
-
-    # def training_step(self, batch, batch_idx):
-    #     data, target = batch
-    #     logits = self(data)
-    #     loss = F.nll_loss(logits, target)
-    #     self.train_accuracy(logits, target)
-
-    #     self.log('train_loss', loss, on_step=True, on_epoch=True,
-    #              prog_bar=True, logger=True)
-    #     self.log('train_acc', self.train_accuracy, on_step=True,
-    #              on_epoch=False, prog_bar=True, logger=True)
-
-    #     return loss
-
-
-    # def validation_step(self, batch, batch_idx):
-    #     data, target = batch
-    #     logits = self(data)
-    #     loss = F.nll_loss(logits, target)
-    #     self.validation_accuracy(logits, target)
-
-    #     self.log('validation_loss', loss, on_step=False, on_epoch=True,
-    #              prog_bar=True, logger=True)
-    #     self.log('validation_acc', self.validation_accuracy, on_step=False,
-    #              on_epoch=True, prog_bar=True, logger=True)
-
-    #     return loss
