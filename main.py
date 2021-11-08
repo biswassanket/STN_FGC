@@ -35,6 +35,7 @@ import random
 
 from utils import plot_metric, convert_image_np, compare_stns, plot_wrong_preds
 from STN import SimpleSTN, CoordSTN
+from vit_pytorch import VisionTransformer
 
 
 random.seed(1)
@@ -182,18 +183,15 @@ def main(args):
     elif args.model == "stncoordconv":
         model = CoordSTN(coordconv_localization=args.localization, with_r=args.rchannel)
     elif args.model == "vit":
-        model_kwargs = {
-                "embed_dim": 64,
-                "hidden_dim": 128,
-                "num_heads": 8,
-                "num_layers": 6,
-                "patch_size": 7, 
-                "num_channels": 1,
-                "num_patches": 64,
-                "num_classes": 10,
-                "dropout": 0.2
-                }
-        model = ViT(model_kwargs, lr=args.lr)
+        model = VisionTransformer(embed_dim=64,
+        hidden_dim=128,
+        num_channels=1,
+        num_heads=8,
+        num_layers=6,
+        num_classes=64,
+        patch_size=7,
+        num_patches=64,
+        dropout=0.2)
     elif args.model == "spinal":
         model = SpinalNet(first_HL=8, lr=args.lr)
     elif args.model == "spinalstn":
