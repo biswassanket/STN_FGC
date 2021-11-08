@@ -142,7 +142,7 @@ class CoordSTN(nn.Module):
         self.coordconv2 = CoordConv(x_dim=12, y_dim=12, with_r=self.with_r, in_channels=10, out_channels=20, kernel_size=5)
         # self.conv2 = nn.Conv2d(10, 20, kernel_size=5)
         # self.conv2_drop = nn.Dropout2d()
-        self.conv2_drop = nn.Dropout2d()
+        self.coordconv2_drop = nn.Dropout2d()
         self.fc1 = nn.Linear(320, 50)
         self.fc2 = nn.Linear(50, 10)
 

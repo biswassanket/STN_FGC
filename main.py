@@ -180,7 +180,7 @@ def main(args):
     if args.model == "stn":
         model = SimpleSTN()
     elif args.model == "stncoordconv":
-        model = CoordSTN(coordconv_localization=args.localization, with_r=args.r_channel)
+        model = CoordSTN(coordconv_localization=args.localization, with_r=args.rchannel)
     elif args.model == "vit":
         model_kwargs = {
                 "embed_dim": 64,
