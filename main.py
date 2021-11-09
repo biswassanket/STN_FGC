@@ -1,21 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# import argparse 
-# import pytorch_lightning as pl
-# import torch
-# import torchvision
-# from pytorch_lightning.loggers import TensorBoardLogger
-# from pytorch_lightning.callbacks.early_stopping import EarlyStopping
-# from six.moves import urllib
-# from torchvision import datasets, transforms
-
-# from STN import SimpleSTN, CoordConvSTN
-# from spinal import SpinalNet, SpinalNetCoordConv
-# from vit import ViT
-# from utils import plot_metric, convert_image_np, compare_stns, plot_wrong_preds
-# pl.utilities.seed.seed_everything(1) 
-
 from __future__ import print_function
 import torch
 import torch.nn as nn
@@ -36,12 +21,13 @@ import random
 from utils import plot_metric, convert_image_np, compare_stns, plot_wrong_preds
 from STN import SimpleSTN, CoordSTN
 from vit_pytorch import VisionTransformer
+__author__ = "Sanket Biswas"
+__email__ = "sanketbiswas1995@gmail.com"
 
-
-random.seed(1)
-np.random.seed(1)
-torch.manual_seed(1)
-torch.cuda.manual_seed_all(1)
+# random.seed(1)
+# np.random.seed(1)
+# torch.manual_seed(42)
+# torch.cuda.manual_seed_all(1)
 
 opener = urllib.request.build_opener()
 opener.addheaders = [('User-agent', 'Mozilla/5.0')]
@@ -78,7 +64,7 @@ test_loader = torch.utils.data.DataLoader(
 
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
-
+# writer=SummaryWriter()
 
 
 
@@ -100,6 +86,7 @@ def train(model, criterion, optimizer, schedler, epochs, train_log='train_log', 
             # outputs, hidden = model(images)
             outputs = model(images)
             loss = criterion(outputs, labels)
+            # writer.add_scalar("Loss/train", loss, epoch)
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
@@ -125,7 +112,10 @@ def train(model, criterion, optimizer, schedler, epochs, train_log='train_log', 
         torch.save(model.state_dict(), '{}_latest.pkl'.format(saved_model))
         if best_acc < test_acc:
             best_acc = test_acc
+            best_epoch = epoch
             torch.save(model.state_dict(), '{}_best.pkl'.format(saved_model))
+            
+    print("\nBest Performance is: %f at Epoch No. %d" % (best_acc, best_epoch))
 
 
 def validate(model, crop=0, test_log=''):
@@ -157,26 +147,7 @@ def validate(model, crop=0, test_log=''):
         return epoch_acc
 
 def main(args):
-    # opener = urllib.request.build_opener()
-    # opener.addheaders = [('User-agent', 'Mozilla/5.0')]
-    # urllib.request.install_opener(opener)
-
-    # # Training dataset
-    # train_loader = torch.utils.data.DataLoader(
-    #     datasets.MNIST(root='.', train=True, download=True,
-    #                    transform=transforms.Compose([
-    #                        transforms.ToTensor(),
-    #                        transforms.Normalize((0.1307,), (0.3081,))
-    #                    ])), batch_size=args.bs, shuffle=True, num_workers=args.workers)
-
-    # # Validation dataset
-    # validation_loader = torch.utils.data.DataLoader(
-    #     datasets.MNIST(root='.', train=False, transform=transforms.Compose([
-    #         transforms.ToTensor(),
-    #         transforms.Normalize((0.1307,), (0.3081,))
-    #     ])), batch_size=args.bs, shuffle=False, num_workers=args.workers)
-    
-    # os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+   
     # Set the model type
     if args.model == "stn":
         model = SimpleSTN()
@@ -192,41 +163,17 @@ def main(args):
         patch_size=7,
         num_patches=64,
         dropout=0.2)
-    elif args.model == "spinal":
-        model = SpinalNet(first_HL=8, lr=args.lr)
-    elif args.model == "spinalstn":
-        model = SpinalNetCoordConv(first_HL=8, lr=args.lr)
+
 
     gpus = 1 if torch.cuda.is_available() and args.device == 'gpu' else 0
-
-    
-
-    # logger = TensorBoardLogger("logs", name=args.model)
-    # early_stop_callback = EarlyStopping(monitor="validation_loss", 
-    #                                     min_delta=args.mindelta,
-    #                                     patience=args.patience, 
-    #                                     verbose=True, 
-    #                                     mode="min")
-    
-    # trainer = pl.Trainer(logger=logger,
-    #                      callbacks=[early_stop_callback],
-    #                      gpus=gpus,
-    #                      min_epochs=1,
-    #                      max_epochs=args.maxepochs,
-    #                      deterministic=True)
-    # trainer.fit(model,
-    #             train_dataloaders=train_loader, 
-    #             val_dataloaders=validation_loader)
-
-    # print("Validation accuracy = %.04f and loss = %.04f at epoch %d" %
-    #   (trainer.logged_metrics['validation_acc'], 
-    #    trainer.logged_metrics['validation_loss'], 
-    #    trainer.logged_metrics['epoch']))
-
+    np.random.seed(args.seed)
+    torch.manual_seed(args.seed)
+    if args.device == 'gpu':
+        torch.cuda.manual_seed(args.seed)
     model = model.cuda()
     criterion = nn.CrossEntropyLoss()
-    # optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9, weight_decay=1e-5)
-    optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.9, weight_decay=1e-5)
+    
+    optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=0.9, weight_decay=1e-5)
 
     exp_lr_scheduler = lr_scheduler.MultiStepLR(optimizer, milestones=[20, 40], gamma=0.1)
 
@@ -238,7 +185,9 @@ def main(args):
     test_log = 'logs/test_mnist_resnet_stn50'
     # saved_model = 'resnet_multi975_stn101'
     saved_model = 'resnet_mnist_stn50'
+
     train(model, criterion, optimizer, exp_lr_scheduler, epochs=50, train_log=train_log, test_log=test_log, saved_model=saved_model)
+    # writer.flush()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description = 'MNIST-benchmarks-STN',
@@ -249,6 +198,8 @@ if __name__ == '__main__':
                         help='Number of workers for dataloaders.')
     parser.add_argument('--bs', type=int, default=64, 
                         help='Batch size.')
+    parser.add_argument('--dataset', type=str, choices=['mnist','cub'], default='mnist',
+                        help='Choose the Data set to use (mnist or cub).')
     parser.add_argument('--maxepochs', type=int, metavar='MAX_EPOCHS', default=20, 
                         help='Maximum number of epochs to run the experiment for.')
 
@@ -256,7 +207,7 @@ if __name__ == '__main__':
                         help='Number of epochs with no improvement before triggering early stopping.')
     parser.add_argument('--mindelta', type=float, metavar='MIN_DELTA', default=0.005, 
                         help='Required improvement in the validation loss for early stopping.')
-    parser.add_argument('--model', type=str, choices=['stn', 'stncoordconv', 'vit', 'spinal', 'spinalstn'], default='stn', help='Type of model to train.')
+    parser.add_argument('--model', type=str, choices=['stn', 'stncoordconv', 'vit'], default='stn', help='Type of model to train.')
     parser.add_argument('--localization', default=False, action='store_true', 
                         help='Whether to use CoordConv in the localization network.')
     parser.add_argument('--rchannel', default=False, action='store_true',
@@ -265,6 +216,8 @@ if __name__ == '__main__':
                         help='Learning rate for SGD.')
     parser.add_argument('--logs', type=str, metavar='LOGPATH', default='logs/', 
                         help='Directory to store tensorboard logs.')
+    parser.add_argument('--seed', type=int, default=42,
+                        help='Set a random seed')
 
     args = parser.parse_args()
     

@@ -176,3 +176,4 @@ class CoordSTN(nn.Module):
         x = self.fc2(x)                            # (bs, 10)
 
         return x
+
