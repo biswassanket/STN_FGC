@@ -2,7 +2,7 @@ import torch
 import torch.nn.functional as F
 
 from torch import nn
-from einops import rearrange
+# from einops import rearrange
 
 
 def img_to_patch(x, patch_size, flatten_channels=True):
